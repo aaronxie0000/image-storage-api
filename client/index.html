@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Manage</title>
+</head>
+
+<body>
+  <div style="
+        height: 50vh;
+        margin: 5vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
+      ">
+
+
+    <from action="http://localhost:3000/" method="post" enctype="multipart/form-data">
+      <input name="imageOrigin" class="imageUpload" type="file" accept="image/*"  />
+      <input type="text" style="width: 30vw;" placeholder="Enter tags for this image, separated by a single space"
+        class="imageTags">
+      <input type="submit" value="Upload Image with Tags">
+
+      <!-- <button onclick="uploadImage()">Upload Image with Tags</button> -->
+      </form>
+
+      <h4 class="resultName"></h4>
+
+
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+  const resultText = document.querySelector('.resultName');
+  const imageTags = document.querySelector('.imageTags');
+  const imageUpload = document.querySelector('.imageUpload');
+
+
+  function uploadImage() {
+
+    if (imageUpload.files && imageUpload.files[0]) {
+      const reader = new FileReader();
+
+      if (imageUpload.files[0].size > 50000000) {
+        alert("File larger than 50mb limit");
+        return;
+      }
+
+      const targetString = imageTags.value;
+      const tags = targetString.split(" ");
+
+      reader.onload = async () => {
+        try {
+          const res = await axios.post("http://localhost:3000/", {
+            imgSrc: reader.result,
+            fileName: imageUpload.files[0].name,
+            tags: tags,
+          });
+
+          resultText.textContent = imageUpload.files[0].name + ' was successfully submitted to database';
+          imageUpload.value = "";
+          imageTags.value = "";
+
+        } catch (err) {
+          console.log(err);
+        }
+      };
+
+
+
+      reader.readAsDataURL(imageUpload.files[0]); //triggers the onload function; allows the result to become base64; without this reader.result is null
+    }
+    else {
+      alert("Check to make sure your image is uploaded")
+    }
+  }
+</script>
+
+</html>
