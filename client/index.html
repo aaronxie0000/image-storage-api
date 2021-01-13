@@ -19,16 +19,12 @@
       ">
 
 
-    <from action="http://localhost:3000/images" method="post" enctype="multipart/form-data">
+
       <input name="imageOrigin" class="imageUpload" type="file" accept="image/*"  />
       <input name="imageTags" type="text" style="width: 30vw;" placeholder="Enter tags for this image, separated by a single space"
         class="imageTags">
-      <input type="submit" value="Upload Image with Tags">
-
-      <!-- <button onclick="uploadImage()">Upload Image with Tags</button> -->
-      </form>
-
-      <!-- <h4 class="resultName"></h4> -->
+      <button onclick="uploadImage()">Upload Image with Tags</button>
+      <h4 class="resultName"></h4>
 
 
   </div>
@@ -40,7 +36,7 @@
   const imageTags = document.querySelector('.imageTags');
   const imageUpload = document.querySelector('.imageUpload');
 
-  //use file reader instead of multer; another option; not used
+
   function uploadImage() {
 
     if (imageUpload.files && imageUpload.files[0]) {
@@ -56,7 +52,7 @@
 
       reader.onload = async () => {
         try {
-          const res = await axios.post("http://localhost:3000/", {
+          const res = await axios.post("http://localhost:3000/images", {
             imgSrc: reader.result,
             fileName: imageUpload.files[0].name,
             tags: tags,
