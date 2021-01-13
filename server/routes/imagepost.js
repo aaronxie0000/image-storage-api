@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-require("dotenv").config();
 const path = require("path");
 const { v1: uuidv1 } = require("uuid");
 const multer = require("multer");
-const pool = require("./../models/db.js");
+const pool = require("../models/db.js");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {

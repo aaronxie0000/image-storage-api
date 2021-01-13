@@ -1,6 +1,4 @@
 const Pool = require('pg').Pool;
-require('dotenv').config();
-
 
 const pool = new Pool({
     user: process.env.PGSQL_USER,
