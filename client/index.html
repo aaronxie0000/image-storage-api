@@ -10,7 +10,7 @@
 <body>
 
 
-  <form action="http://localhost:3000/images" target="_blank" method="post" enctype="multipart/form-data" style="
+  <form class="allForm" action="http://localhost:3000/images" target="_blank" method="post" enctype="multipart/form-data" style="
     height: 50vh;
     margin: 5vh;
     width: 100vw;
@@ -22,10 +22,10 @@
 
 
 
-      <input name="imageOrigin" class="imageUpload" type="file" accept="image/*" />
+      <input name="imageOrigin" class="imageUpload" type="file" accept="image/*"  multiple="multiple"/>
       <input name="imageTags" type="text" style="width: 30vw;"
         placeholder="Enter tags for this image, separated by a single space" class="imageTags">
-      <input type="submit" value="Upload Image with Tags">
+      <input type="submit" value="Upload Image with Tags" onclick="clearForm()">
       
       
     </form>
@@ -34,5 +34,12 @@
 
     </div>
 </body>
+  <script>
+      
+      function clearForm(){
+        setTimeout(()=>  document.querySelector('.allForm').reset(), 2000)
 
+      }
+
+  </script>
 </html>
