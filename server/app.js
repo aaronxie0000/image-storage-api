@@ -1,51 +1,57 @@
-const fs = require("fs/promises");
+// const fs = require("fs/promises");
+const path = require("path");
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const multer  = require('multer')
+const multer = require("multer");
 const { v1: uuidv1 } = require("uuid");
 
-//disk storage is just so can add more customization to filename and dest 
+//disk storage is just so can add more customization to filename and dest
 const storage = multer.diskStorage({
-  destination: (req, res, cb)=>{
-    cb(null,'./images');
+  destination: function (req, file, cb) {
+    cb(null, './images')
   },
-  fileName: (req,res,cb)=>{
-    cb(null, req.fieDest)
+  filename: function (req, file, cb) {
+    const fileID = uuidv1();
+    cb(null,fileID + path.extname(file.originalname));
   }
-});
-const upload = multer({storage: storage}).single('imageOrigin');
+})
+
+const upload = multer({ storage: storage });
+
 
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb" }));
 
-function fileNameParse(req, res, next){
-
-
+function fileNameParse(req, res, next) {
+  console.log(req.file);
+  next();
 }
 
 
-app.post("/", async (req, res) => {
-  const rawSrc = req.body.imgSrc;
-  const fileName = req.body.fileName;
 
-  console.log(req.body.tags);
+app.post("/images", upload.single("imageOrigin"),fileNameParse, async (req, res) => {
+    // const rawSrc = req.body.imgSrc;
+    // const fileName = req.body.fileName;
 
-  const ext = rawSrc.substring(
-    rawSrc.indexOf("/") + 1,
-    rawSrc.indexOf(";base64")
-  );
-  const fileType = rawSrc.substring("data:".length, rawSrc.indexOf("/"));
+    // console.log(req.body.tags);
 
-  const regexTarget = new RegExp(`^data:${fileType}\/${ext};base64,`, "gi");
-  const base64Data = rawSrc.replace(regexTarget, "");
+    // const ext = rawSrc.substring(
+    //   rawSrc.indexOf("/") + 1,
+    //   rawSrc.indexOf(";base64")
+    // );
+    // const fileType = rawSrc.substring("data:".length, rawSrc.indexOf("/"));
 
-  const fileID = uuidv1();
+    // const regexTarget = new RegExp(`^data:${fileType}\/${ext};base64,`, "gi");
+    // const base64Data = rawSrc.replace(regexTarget, "");
 
-  await fs.writeFile(`./images/${fileID}.${ext}`, base64Data, "base64");
+    // const fileID = uuidv1();
 
-  res.end();
-});
+    // await fs.writeFile(`./images/${fileID}.${ext}`, base64Data, "base64");
+
+    res.end();
+  }
+);
 
 app.listen(3000, () => console.log("listening on 3000"));
