@@ -2,3 +2,4 @@ server/node_modules
 server/images
 client/node_modules
 .DS_Store
+/node_modules
