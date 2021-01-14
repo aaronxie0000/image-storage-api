@@ -4,6 +4,7 @@ const router = express.Router();
 const path = require("path");
 const { v1: uuidv1 } = require("uuid");
 const multer = require("multer");
+const bcrypt = require("bcrypt");
 const pool = require("../models/db.js");
 
 const storage = multer.diskStorage({
@@ -26,23 +27,35 @@ const upload = multer({ storage: storage });
 //post
 //add files to folder and postgres
 router.post("/", upload.array("imageOrigin"), async (req, res) => {
-  //req.file
-  // req.body.imageTags (text content of the form is in req.body)
+  const privateAccess = req.body.isPrivate === "on";
+  let hashedAccessCode = null;
+
+  if (privateAccess) {
+    hashedAccessCode = await bcrypt.hash(req.body.accessCode, 10);
+  }
 
   const filesName = [];
   const tagArr = req.body.imageTags.split(" ");
-  const folder = process.env.IMG_FOLDER;
+  const thisFolder = process.env.IMG_FOLDER;
 
   for (let i = 0; i < req.fileID.length; i++) {
-    const id = req.fileID[i];
+    const thisID = req.fileID[i];
 
-    const name = req.files[i].originalname;
-    filesName.push(name);
-    const file = req.allFileName[i];
+    const thisName = req.files[i].originalname;
+    filesName.push(thisName);
+    const thisFile = req.allFileName[i];
 
     await pool.query(
-      `INSERT INTO ${process.env.PGSQL_TABLE}(id, name, folder, file, tags) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [id, name, folder, file, tagArr]
+      `INSERT INTO ${process.env.PGSQL_TABLE} (id, name, folder, file, private, accesscode, tags) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [
+        thisID,
+        thisName,
+        thisFolder,
+        thisFile,
+        privateAccess,
+        hashedAccessCode,
+        tagArr,
+      ]
     );
   }
 
