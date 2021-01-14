@@ -1,11 +1,12 @@
 const express = require("express");
 const app = express();
+require("dotenv").config();
 
 
 app.get('/', express.static('./'), (req, res)=>{
     res.end();
   })
   
-app.listen(3003, () => console.log("listening on 3003"));
+app.listen(process.env.FRONTEND_PORT, () => console.log(`client listening on ${process.env.FRONTEND_PORT}`));
 
 

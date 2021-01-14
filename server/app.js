@@ -14,5 +14,5 @@ app.use("/add", imagePost);
 const imageGet = require("./routes/imageGet");
 app.use("/get", imageGet);
 
-app.listen(3000, () => console.log("listening on 3000"));
+app.listen(process.env.BACKEND_PORT, () => console.log(`server listening on ${process.env.BACKEND_PORT}`));
 
