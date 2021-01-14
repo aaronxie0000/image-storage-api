@@ -30,7 +30,7 @@ router.post("/", upload.array("imageOrigin"), async (req, res) => {
   const privateAccess = req.body.isPrivate === "on";
   let hashedAccessCode = null;
 
-  if (privateAccess) {
+  if (privateAccess && req.body.accessCode !=='') {
     hashedAccessCode = await bcrypt.hash(req.body.accessCode, 10);
   }
 
