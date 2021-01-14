@@ -39,19 +39,15 @@ router.post("/", upload.array("imageOrigin"), async (req, res) => {
   const thisFolder = process.env.IMG_FOLDER;
 
   for (let i = 0; i < req.fileID.length; i++) {
-    const thisID = req.fileID[i];
-
-    const thisName = req.files[i].originalname;
-    filesName.push(thisName);
-    const thisFile = req.allFileName[i];
+    filesName.push(req.files[i].originalname);
 
     await pool.query(
       `INSERT INTO ${process.env.PGSQL_TABLE} (id, name, folder, file, private, accesscode, tags) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [
-        thisID,
-        thisName,
+        req.fileID[i],
+        req.files[i].originalname,
         thisFolder,
-        thisFile,
+        req.allFileName[i],
         privateAccess,
         hashedAccessCode,
         tagArr,

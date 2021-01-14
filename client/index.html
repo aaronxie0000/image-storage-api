@@ -1,21 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Image Manage</title>
-  </head>
 
-  <body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Manage</title>
+</head>
 
-    <!-- add image form  -->
-    <form
-      class="addImgForm"
-      action="http://localhost:3000/add"
-      target="_blank"
-      method="post"
-      enctype="multipart/form-data"
-      style="
+<body>
+
+  <!-- add image to db  -->
+  <form class="addImgForm" action="http://localhost:3000/add" target="_blank" method="post"
+    enctype="multipart/form-data" style="
         height: 50vh;
         margin: 5vh;
         width: 90vw;
@@ -23,44 +19,20 @@
         flex-direction: column;
         justify-content: space-around;
         align-items: center;
-      "
-    >
-      <input
-        name="imageOrigin"
-        class="imageUpload"
-        type="file"
-        accept="image/*"
-        multiple="multiple"
-      />
-      <input
-        name="imageTags"
-        type="text"
-        style="width: 30vw"
-        placeholder="Enter tags for this image, separated by a single space"
-        class="imageTags"
-      />
-      <div>
-        <input name="isPrivate" id="isPrivate" type="checkbox" />
-        <label for="isPrivate"
-          >Private? (Would need access code to access image)</label
-        >
-      </div>
-      <input
-        name="accessCode"
-        type="text"
-        placeholder="Your access code"
-        style="width: 20vw"
-      />
-      <input
-        type="submit"
-        value="Upload Image with Tags"
-        onclick="clearForm(this)"
-      />
-    </form>
+      ">
+    <input name="imageOrigin" class="imageUpload" type="file" accept="image/*" multiple="multiple" />
+    <input name="imageTags" type="text" style="width: 30vw"
+      placeholder="Enter tags for this image, separated by a single space" class="imageTags" />
+    <div>
+      <input name="isPrivate" id="isPrivate" type="checkbox" />
+      <label for="isPrivate">Private? (Would need access code to access image)</label>
+    </div>
+    <input name="accessCode" type="text" placeholder="Your access code" style="width: 20vw" />
+    <input type="submit" value="Upload Image with Tags" onclick="clearForm(this)" />
+  </form>
 
-    <!-- image search container -->
-    <div
-      style="
+  <!-- image search container -->
+  <div style="
         margin: 10vh 0;
         width: 90vw;
         height: 80vh;
@@ -68,93 +40,50 @@
         flex-direction: column;
         justify-content: space-around;
         align-items: center;
-      "
-    >
-      <!-- img by name -->
-      <form  action="http://localhost:3000/get/somedata/dev"
-      target="_blank"
-      method="get">
-        <input
-          name="imageTname"
-          type="text"
-          class="searchByName-name"
-          style="width: 10vw"
-          placeholder="Image Name"
-        />
-        <input
-          name="imageAname"
-          type="text"
-          class="searchByName-code"
-          style="width: 25vw"
-          placeholder="Access Code (optional)"
-        />
-        <input type="submit" onclick="clearForm(this)">
-        <!-- <button onclick="searchImgByName()">Search Img by Name</button> -->
-      </form>
+      ">
+    <!-- img by name -->
+    <form action="http://localhost:3000/get/byname/meta" target="_blank" method="get">
+      <input name="targetName" type="text" class="searchByName-name" style="width: 10vw" placeholder="Image Name" />
+      <input name="accessCode" type="text" class="searchByName-code" style="width: 25vw"
+        placeholder="Access Code (optional)" />
+      <input type="submit" onclick="clearForm(this)" value="Search Img Meta by Name">
+    </form>
 
-      <!-- img meta by name  -->
-      <div>
-        <input
-          type="text"
-          class="metaSearchByName-name"
-          style="width: 10vw"
-          placeholder="Image Name"
-        />
-        <input
-          type="text"
-          class="metaSearchByName-code"
-          style="width: 25vw"
-          placeholder="Access Code (optional)"
-        />
-        <button onclick="searchMetaByName()">Search Img Meta by Name</button>
-      </div>
+    <!-- img meta by name  -->
+    <form action="http://localhost:3000/get/byname/img" target="_blank" method="get">
+      <input name="targetName" type="text" class="metaSearchByName-name" style="width: 10vw" placeholder="Image Name" />
+      <input name="accessCode" type="text" class="metaSearchByName-code" style="width: 25vw"
+        placeholder="Access Code (optional)" />
+      <input type="submit" onclick="clearForm(this)" value="Search Img by Name">
+    </form>
 
-      <!-- img by date -->
-      <div>
-        <input class="searchByDate-date" type="date" />
-        <input
-          type="text"
-          class="searchByDate-code"
-          style="width: 25vw"
-          placeholder="Access Code (optional)"
-        />
-        <button onclick="searchByDate()">Search by date</button>
-      </div>
+    <!-- img by tags -->
+    <form action="http://localhost:3000/get/bytag/img" target="_blank" method="get">
+      <input name="targetTag" type="text" class="searchByDate-tags" style="width: 20vw"
+        placeholder="Image Tags" />
+      <input name="accessCode" type="text" class="searchByDate-code" style="width: 15vw"
+        placeholder="Access Code (optional)" />
+      <input type="submit" onclick="clearForm(this)" value="Search Img by Tags">
+    </form>
 
-      <!-- img by tag -->
-      <div>
-        <input
-          type="text"
-          class="searchByDate-tags"
-          style="width: 10vw"
-          placeholder="Image Tags, separated by a space"
-        />
-        <input
-          type="text"
-          class="searchByDate-code"
-          style="width: 25vw"
-          placeholder="Access Code (optional)"
-        />
-        <button onclick="searchByTag()">Search by tag</button>
-      </div>
+    <!-- img by date -->
+    <form action="http://localhost:3000/get/bytime/img" target="_blank" method="get">
+      <input name="targetDate" class="searchByDate-date" type="date" />
+      <input name="accessCode" type="text" class="searchByDate-code" style="width: 25vw"
+        placeholder="Access Code (optional)" />
+      <input type="submit" onclick="clearForm(this)" value="Search Img by Date">
+    </form>
 
-      <!-- container div  -->
-    </div>
-  </body>
 
-  <script>
-    function clearForm(ele) {
-      setTimeout(() => ele.parentElement.reset(), 1500);
-    }
+  </div>
 
-    function searchByDate() {
-      const date = document.querySelector(".").value;
-    }
+</body>
 
-    function searchByTag() {}
+<script>
+  function clearForm(ele) {
+    setTimeout(() => ele.parentElement.reset(), 1500);
+  }
 
-    function searchImgByName() {}
+</script>
 
-    function searchMetaByName() {}
-  </script>
 </html>
