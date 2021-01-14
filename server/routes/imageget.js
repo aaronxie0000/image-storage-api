@@ -3,8 +3,14 @@ const router = express.Router();
 
 const path = require("path");
 const fs = require("fs");
-const bcrypt = require("bcrypt");
 const pool = require("../models/db.js");
+const {checkAuth}  = require("./checkAuth.js");
+
+router.get("/somedata/dev", (req, res) => {
+  console.log(req);
+  console.log(req.query);
+  res.end();
+});
 
 //get
 //image meta info
@@ -15,32 +21,24 @@ router.get("/byname/:targetName/meta", async (req, res) => {
     [req.params.targetName + ".%"]
   );
 
+  if (rawData.rows.length === 0) {
+    res.json({ message: "Error, no image found" });
+    return;
+  }
+
   const allMatches = [];
 
+
   for (let i = 0; i < rawData.rows.length; i++) {
-    let accessed = false;
 
-    if (rawData.rows[i].private) {
-      const tryAccessCode = req.query.accesscode;
+    const isAuth = await checkAuth(
+      rawData.rows[i].private,
+      req.query.accesscode,
+      rawData.rows[i].accesscode
+    );
 
-      if (!tryAccessCode) {
-        res.json({
-          message: "Please enter access code as query on: accesscode",
-        });
-        return;
-      }
-
-      accessed = await bcrypt.compare(
-        tryAccessCode,
-        rawData.rows[i].accesscode
-      );
-    } else {
-      accessed = true;
-    }
-
-    if (!accessed) {
-      res.json({ message: "Incorrect access code" });
-      return;
+    if (!isAuth) {
+      continue;
     }
 
     const match = {
@@ -56,79 +54,55 @@ router.get("/byname/:targetName/meta", async (req, res) => {
 
 //get
 //image as base64 string
-//need query string acesscode
-router.get("/byname/:targetName/oneimg", async (req, res) => {
+//need Query string acesscode if image is private
+router.get("/byname/:targetName/img", async (req, res) => {
   const rawData = await pool.query(
     `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE name LIKE $1`,
     [req.params.targetName + ".%"]
   );
 
-  if (!rawData) {
-    
-    res.json({ message: "Error, no image found" });
+  if (rawData.rows.length === 0) {
+    res.json({ message: "No Matches" });
+    return;
+  }
 
-  } else if (rawData.rows.length > 1) {
-    
-    res.json({ Message: "Error, more than 1 file matched" });
+  const allMatches = [];
 
-  } else {
+  for (let i = 0; i < rawData.rows.length; i++) {
+    const isAuth = await checkAuth(
+      rawData.rows[i].private,
+      req.query.accesscode,
+      rawData.rows[i].accesscode
+    );
 
-    const auth = checkAuth(rawData.rows[0].private, req.query.accesscode, rawData.rows[0].accesscode)
-
-    let accessed = false;
-
-    if (rawData.rows[0].private) {
-      const tryAccessCode = req.query.accesscode;
-      if (!tryAccessCode) {
-        res.json({
-          message: "Please enter access code as query on: accesscode",
-        });
-        return;
-      }
-
-      accessed = await bcrypt.compare(
-        tryAccessCode,
-        rawData.rows[0].accesscode
-      );
-    } else {
-      accessed = true;
+    if (!isAuth) {
+      continue;
     }
 
-    if (!accessed) {
-      res.json({ message: "Incorrect Access Code" });
-      return;
-    }
-
-    const imgLoc = path.join(rawData.rows[0].folder, rawData.rows[0].file);
+    const imgLoc = path.join(rawData.rows[i].folder, rawData.rows[i].file);
 
     if (!fs.existsSync(imgLoc)) {
-      res.json({ message: "Error, no image found" });
+      res.json({ message: "Error, image not found" });
       return;
     }
 
     const orgFile = fs.readFileSync(imgLoc);
     const base64String = new Buffer.from(orgFile).toString("base64");
-    res.json({ base64: base64String });
+
+    allMatches.push(base64String);
   }
+
+  if (allMatches.length === 0) {
+    res.json({ message: "No Matches, double check your access code" });
+    return;
+  }
+
+  res.json({ response: allMatches });
 });
-
-
-async function checkAuth(isPrivate, accessCode, correctCode){
-    if(!isPrivate) return true;
-
-    const match = await bcrypt.compare(
-      accessCode,
-      correctCode
-    );
-
-    return match;
-}
-
-
 
 //get
 //image get by tag
-//need query string acesscode
+//need Query string acesscode or without just access public images
 router.get("/bytag/:targetTag/img", async (req, res) => {
   const rawData = await pool.query(
     `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE tags @> ARRAY[$1]`,
@@ -141,7 +115,13 @@ router.get("/bytag/:targetTag/img", async (req, res) => {
     const matchedImg = [];
 
     for (let i = 0; i < rawData.rows.length; i++) {
-      if (rawData.rows[i].private) {
+      const isAuth = await checkAuth(
+        rawData.rows[i].private,
+        req.query.accesscode,
+        rawData.rows[i].accesscode
+      );
+
+      if (!isAuth) {
         continue;
       }
 
@@ -156,22 +136,20 @@ router.get("/bytag/:targetTag/img", async (req, res) => {
       const base64String = new Buffer.from(orgFile).toString("base64");
       matchedImg.push({ base64Img: base64String });
     }
+
     res.json({ allImages: matchedImg });
   }
 });
 
-
-
 //get
 //image get by date
-//need query string acesscode
+//need Query string acesscode or without just access public images
 router.get("/bytime/:targetDate/img", async (req, res) => {
   const rawData = await pool.query(
     `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE timestamp::date = $1::date`,
     [req.params.targetDate]
   );
 
-  console.log(rawData);
 
   if (!rawData) {
     res.json({ message: "Error, no image found" });
@@ -179,7 +157,13 @@ router.get("/bytime/:targetDate/img", async (req, res) => {
     const matchedImg = [];
 
     for (let i = 0; i < rawData.rows.length; i++) {
-      if (rawData.rows[i].private) {
+      const isAuth = await checkAuth(
+        rawData.rows[i].private,
+        req.query.accesscode,
+        rawData.rows[i].accesscode
+      );
+
+      if (!isAuth) {
         continue;
       }
 
