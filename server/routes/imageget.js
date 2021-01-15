@@ -10,109 +10,65 @@ const { checkAuth } = require("./checkAuth.js");
 //image meta info
 //access: req.query.targetName & req.query.accessCode
 router.get("/byname/meta", async (req, res) => {
-  const rawData = await pool.query(
-    `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE name LIKE $1`,
-    [req.query.targetName + ".%"]
-  );
-
-  if (rawData.rows.length === 0) {
-    res.json({ message: "No Matches" });
-    return;
-  }
-
-  const allMatches = [];
-
-  for (let i = 0; i < rawData.rows.length; i++) {
-    const isAuth = await checkAuth(
-      rawData.rows[i].private,
-      req.query.accessCode,
-      rawData.rows[i].accesscode
+  try {
+    const rawData = await pool.query(
+      `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE name LIKE $1`,
+      [req.query.targetName + ".%"]
     );
 
-    if (!isAuth) {
-      continue;
+    if (rawData.rows.length === 0) {
+      res.json({ message: "No Matches" });
+      return;
     }
 
-    const match = {
-      name: rawData.rows[i].name,
-      tags: rawData.rows[i].tags,
-      create_at: rawData.rows[i].timestamp,
-    };
-    allMatches.push(match);
-  }
+    const allMatches = [];
 
-  if (allMatches.length === 0) {
-    res.json({ message: "No Matches, double check your access code" });
-    return;
-  }
+    for (let i = 0; i < rawData.rows.length; i++) {
+      const isAuth = await checkAuth(
+        rawData.rows[i].private,
+        req.query.accessCode,
+        rawData.rows[i].accesscode
+      );
 
-  res.json({ response: allMatches });
+      if (!isAuth) {
+        continue;
+      }
+
+      const match = {
+        name: rawData.rows[i].name,
+        tags: rawData.rows[i].tags,
+        create_at: rawData.rows[i].timestamp,
+      };
+      allMatches.push(match);
+    }
+
+    if (allMatches.length === 0) {
+      res.json({ message: "No Matches, double check your access code" });
+      return;
+    }
+
+    res.json({ response: allMatches });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
 });
 
 //get
 //image as base64 string
 //access: req.query.targetName & req.query.accessCode
 router.get("/byname/img", async (req, res) => {
-  const rawData = await pool.query(
-    `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE name LIKE $1`,
-    [req.query.targetName + ".%"]
-  );
-
-  if (rawData.rows.length === 0) {
-    res.json({ message: "No Matches" });
-    return;
-  }
-
-  const allMatches = [];
-
-  for (let i = 0; i < rawData.rows.length; i++) {
-    const isAuth = await checkAuth(
-      rawData.rows[i].private,
-      req.query.accessCode,
-      rawData.rows[i].accesscode
+  try {
+    const rawData = await pool.query(
+      `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE name LIKE $1`,
+      [req.query.targetName + ".%"]
     );
 
-    if (!isAuth) {
-      continue;
-    }
-
-    const imgLoc = path.join(rawData.rows[i].folder, rawData.rows[i].file);
-
-    if (!fs.existsSync(imgLoc)) {
-      res.json({ message: "Error, image not found" });
+    if (rawData.rows.length === 0) {
+      res.json({ message: "No Matches" });
       return;
     }
 
-    const orgFile = fs.readFileSync(imgLoc);
-    const base64String = new Buffer.from(orgFile).toString("base64");
-
-    allMatches.push(base64String);
-  }
-
-  if (allMatches.length === 0) {
-    res.json({ message: "No Matches, double check your access code" });
-    return;
-  }
-
-  res.json({ response: allMatches });
-});
-
-//get
-//image get by tag
-//access: req.query.targetTag & req.query.accessCode
-router.get("/bytag/img", async (req, res) => {
-  const targetTagArr = req.query.targetTag.split(" ");
-
-  const rawData = await pool.query(
-    `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE tags @> $1::text[]`,
-    [targetTagArr]
-  );
-
-  if (!rawData) {
-    res.json({ message: "No Matches" });
-  } else {
     const allMatches = [];
-
 
     for (let i = 0; i < rawData.rows.length; i++) {
       const isAuth = await checkAuth(
@@ -128,13 +84,14 @@ router.get("/bytag/img", async (req, res) => {
       const imgLoc = path.join(rawData.rows[i].folder, rawData.rows[i].file);
 
       if (!fs.existsSync(imgLoc)) {
-        allMatches.push({ base64Img: "Error, Image Not Found" });
-        continue;
+        res.json({ message: "Error, image not found" });
+        return;
       }
 
       const orgFile = fs.readFileSync(imgLoc);
       const base64String = new Buffer.from(orgFile).toString("base64");
-      allMatches.push({ base64Img: base64String });
+
+      allMatches.push(base64String);
     }
 
     if (allMatches.length === 0) {
@@ -142,7 +99,61 @@ router.get("/bytag/img", async (req, res) => {
       return;
     }
 
-    res.json({ allImages: allMatches });
+    res.json({ response: allMatches });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+});
+
+//get
+//image get by tag
+//access: req.query.targetTag & req.query.accessCode
+router.get("/bytag/img", async (req, res) => {
+  try {
+    const targetTagArr = req.query.targetTag.split(" ");
+
+    const rawData = await pool.query(
+      `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE tags @> $1::text[]`,
+      [targetTagArr]
+    );
+
+    if (rawData.rows.length === 0) {
+      res.json({ message: "No Matches" });
+    } else {
+      const allMatches = [];
+
+      for (let i = 0; i < rawData.rows.length; i++) {
+        const isAuth = await checkAuth(
+          rawData.rows[i].private,
+          req.query.accessCode,
+          rawData.rows[i].accesscode
+        );
+
+        if (!isAuth) {
+          continue;
+        }
+
+        const imgLoc = path.join(rawData.rows[i].folder, rawData.rows[i].file);
+
+        if (!fs.existsSync(imgLoc)) {
+          allMatches.push({ base64Img: "Error, Image Not Found" });
+          continue;
+        }
+
+        const orgFile = fs.readFileSync(imgLoc);
+        const base64String = new Buffer.from(orgFile).toString("base64");
+        allMatches.push({ base64Img: base64String });
+      }
+
+      if (allMatches.length === 0) {
+        res.json({ message: "No Matches, double check your access code" });
+        return;
+      }
+
+      res.json({ allImages: allMatches });
+    }
+  } catch (err) {
+    res.json({ error: err.message });
   }
 });
 
@@ -150,45 +161,49 @@ router.get("/bytag/img", async (req, res) => {
 //image get by date
 //access: req.query.targetDate & req.query.accessCode
 router.get("/bytime/img", async (req, res) => {
-  const rawData = await pool.query(
-    `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE timestamp::date = $1::date`,
-    [req.query.targetDate]
-  );
+  try {
+    const rawData = await pool.query(
+      `SELECT * FROM ${process.env.PGSQL_TABLE} WHERE timestamp::date = $1::date`,
+      [req.query.targetDate]
+    );
 
-  if (!rawData) {
-    res.json({ message: "No Matches" });
-  } else {
-    const allMatches = [];
+    if (rawData.rows.length === 0) {
+      res.json({ message: "No Matches" });
+    } else {
+      const allMatches = [];
 
-    for (let i = 0; i < rawData.rows.length; i++) {
-      const isAuth = await checkAuth(
-        rawData.rows[i].private,
-        req.query.accessCode,
-        rawData.rows[i].accesscode
-      );
+      for (let i = 0; i < rawData.rows.length; i++) {
+        const isAuth = await checkAuth(
+          rawData.rows[i].private,
+          req.query.accessCode,
+          rawData.rows[i].accesscode
+        );
 
-      if (!isAuth) {
-        continue;
+        if (!isAuth) {
+          continue;
+        }
+
+        const imgLoc = path.join(rawData.rows[i].folder, rawData.rows[i].file);
+
+        if (!fs.existsSync(imgLoc)) {
+          allMatches.push({ base64Img: "Error, Image Not Found" });
+          continue;
+        }
+
+        const orgFile = fs.readFileSync(imgLoc);
+        const base64String = new Buffer.from(orgFile).toString("base64");
+        allMatches.push({ base64Img: base64String });
       }
 
-      const imgLoc = path.join(rawData.rows[i].folder, rawData.rows[i].file);
-
-      if (!fs.existsSync(imgLoc)) {
-        allMatches.push({ base64Img: "Error, Image Not Found" });
-        continue;
+      if (allMatches.length === 0) {
+        res.json({ message: "No Matches, double check your access code" });
+        return;
       }
 
-      const orgFile = fs.readFileSync(imgLoc);
-      const base64String = new Buffer.from(orgFile).toString("base64");
-      allMatches.push({ base64Img: base64String });
+      res.json({ allImages: allMatches });
     }
-
-    if (allMatches.length === 0) {
-      res.json({ message: "No Matches, double check your access code" });
-      return;
-    }
-
-    res.json({ allImages: allMatches });
+  } catch (err) {
+    res.json({ error: err.message });
   }
 });
 
