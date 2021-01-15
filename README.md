@@ -18,18 +18,18 @@
 
 
 ## Routes
-- localhost/3000/add
-  - this accepts a POST request of type form-data; it should contain key value pairs (or forms with input with names of) imageOrigin (type is a image file), imageTags, isPrivate (checkbox), accessCode. The only required one is imageOrigin.
-- localhost/3000/get/byname/meta?targetName=&accessCode= 
+- http://localhost:3000/add
+  - this accepts a POST request of type form-data; it should contain key value pairs: imageOrigin (a image file), imageTags (text), isPrivate ("on" or not declared), accessCode (text). 
+- http://localhost:3000/get/byname/meta?targetName=&accessCode= 
   - this accepts a Get request with query string of targetName (name of image(s) that want to get) and accessCode (optional)
   - returns meta data for image (name, tag, and timestamp)
-- localhost/3000/get/byname/img?targetName=&accessCode=
+- http://localhost:3000/get/byname/img?targetName=&accessCode=
   - this accepts a Get request with query string of targetName (name of image(s) that want to get) and accessCode (optional)
-  - returns img as base64 (can easily convert to image on frontend or try for yourself with https://codebeautify.org/base64-to-image-converter)
-- localhost/3000/get/bytag/img?targetTag=&accessCode
-  - this accepts a Get request with query string of tags separated by one single space and accessCode (optional)
+  - returns img as base64 (can easily convert to image on frontend or can try for yourself with https://codebeautify.org/base64-to-image-converter)
+- http://localhost:3000/get/bytag/img?targetTag=&accessCode
+  - this accepts a Get request with query string of tags separated by one single space (or + if manually sending request instead of using sample client) and accessCode (optional)
   - returns the img(s) as base64
-- localhost/3000/get/bytime/img?targetDate=yyyy-mm-dd&accessCode=
+- http://localhost:3000/get/bytime/img?targetDate=yyyy-mm-dd&accessCode=
   - this accepts a Get request with query string of targetDate (uses postgres to parse date string into date data type; can accept string in format yyyy-mm-dd, or full ISO standard or UTC standard timestamps)
     - returns images as base64
 
@@ -37,9 +37,9 @@
 
 ## Dependencies 
 1. express
-2. multer
-3. bcrypt
-4. pg
+2. pg
+3. multer
+4. bcrypt
 5. cors
 6. uuid
 7. dotenv
