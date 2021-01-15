@@ -4,7 +4,6 @@
 - set image(s) as private; only accessible through an access code (which is hashed then stored)
 - add tags and search by tags
 - search by date
----
 
 <br />
 
@@ -33,9 +32,6 @@
 - localhost/3000/get/bytime/img?targetDate=yyyy-mm-dd&accessCode=
   - this accepts a Get request with query string of targetDate (uses postgres to parse date string into date data type; can accept string in format yyyy-mm-dd, or full ISO standard or UTC standard timestamps)
     - returns images as base64
-
-
----
 
 <br />
 
